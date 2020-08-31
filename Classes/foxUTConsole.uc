@@ -10,18 +10,17 @@ var float CachedClipY;
 var float CachedDefaultFOV;
 var float CachedDesiredFOV;
 
-var class CachedWeaponClass;
-
-struct DefaultWeaponInfo
+struct WeaponInfo
 {
 	var class<Weapon> WeaponClass;
 	var vector DefaultPlayerViewOffset;
 	var float DefaultMuzzleScale;
 	var float DefaultFlashO;
 };
-var DefaultWeaponInfo WeaponInfo[128];
+var WeaponInfo CachedWeaponInfo;
 
 var globalconfig float Desired43FOV;
+var globalconfig bool bCorrectZoomFOV;
 //var globalconfig bool bCorrectMouseSensitivity;
 
 const DEGTORAD = 0.01745329251994329576923690768489; //Pi / 180
@@ -35,9 +34,6 @@ exec function SetFOV(float F)
 
 	//This will force a new weapon position / FOV calculation
 	CachedSizeX = default.CachedSizeX;
-
-	//... And this will correct our next FOV
-	Viewport.Actor.DesiredFOV = F;
 }
 
 //fox: Hijack this to force FOV per current aspect ratio - done every frame as a lazy catch-all since we're only hooking clientside PlayerInput
@@ -64,26 +60,27 @@ event PostRender(canvas Canvas)
 		CachedClipY = Canvas.ClipY;
 		CachedDefaultFOV = default.CachedDefaultFOV;
 		CachedDesiredFOV = default.CachedDesiredFOV;
-		CachedWeaponClass = default.CachedWeaponClass;
+		UpdateCachedWeaponInfo(None);
 		//CorrectMouseSensitivity();
 		return;
 	}
 
 	//Durr
 	P = Viewport.Actor;
-	if (P == None) {
+	if (P == None)
 		return;
-	}
 
 	//Attempt to set an accurate FOV for our aspect ratio
 	if (P.DefaultFOV != CachedDefaultFOV) {
 		CachedDefaultFOV = GetHorPlusFOV(Desired43FOV);
 		P.DefaultFOV = CachedDefaultFOV;
+		P.DesiredFOV = CachedDefaultFOV;
 		return;
 	}
 
-	//Actually set this FOV, including when we're zoomed
-	if (P.DesiredFOV != P.DefaultFOV
+	//Attempt to do the same when we're zoomed in or out
+	if (bCorrectZoomFOV
+	&& P.DesiredFOV != P.DefaultFOV
 	&& P.DesiredFOV != CachedDesiredFOV) {
 		CachedDesiredFOV = GetHorPlusFOV(P.DesiredFOV);
 		P.DesiredFOV = CachedDesiredFOV;
@@ -91,52 +88,14 @@ event PostRender(canvas Canvas)
 	}
 
 	//Set weapon FOV as well - only once per weapon
-	if (P != None && P.Weapon != None
-	&& P.Weapon.Class != CachedWeaponClass)
+	if (P.Weapon != None
+	&& P.Weapon.Class != CachedWeaponInfo.WeaponClass)
 		ApplyWeaponFOV(P.Weapon);
 }
 function ApplyWeaponFOV(Weapon Weap)
 {
-	local int i;
-
-	//Remember our selected weapon
-	CachedWeaponClass = Weap.Class;
-
-	//First pull or cache our "default default" values before doing anything else
-	i = ArrayCount(WeaponInfo) - 1;
-	if (WeaponInfo[i].WeaponClass != None) {
-		WeaponInfo[i].WeaponClass.default.PlayerViewOffset = WeaponInfo[i].DefaultPlayerViewOffset;
-		WeaponInfo[i].WeaponClass.default.MuzzleScale = WeaponInfo[i].DefaultMuzzleScale;
-		WeaponInfo[i].WeaponClass.default.FlashO = WeaponInfo[i].DefaultFlashO;
-		/* Log("foxWSFix Cleared " $ i @ WeaponInfo[i].WeaponClass
-			@ WeaponInfo[i].WeaponClass.default.PlayerViewOffset
-			@ WeaponInfo[i].WeaponClass.default.MuzzleScale
-			@ WeaponInfo[i].WeaponClass.default.FlashO); */
-		WeaponInfo[i].WeaponClass = None;
-	}
-	for (i = 0; i < ArrayCount(WeaponInfo); i++) {
-		if (WeaponInfo[i].WeaponClass == Weap.Class) {
-			Weap.default.PlayerViewOffset = WeaponInfo[i].DefaultPlayerViewOffset;
-			Weap.default.MuzzleScale = WeaponInfo[i].DefaultMuzzleScale;
-			Weap.default.FlashO = WeaponInfo[i].DefaultFlashO;
-			/* Log("foxWSFix Found " $ i @ Weap.Class
-				@ Weap.default.PlayerViewOffset
-				@ Weap.default.MuzzleScale
-				@ Weap.default.FlashO); */
-			break;
-		}
-		if (WeaponInfo[i].WeaponClass == None) {
-			WeaponInfo[i].WeaponClass = Weap.Class;
-			WeaponInfo[i].DefaultPlayerViewOffset = Weap.default.PlayerViewOffset;
-			WeaponInfo[i].DefaultMuzzleScale = Weap.default.MuzzleScale;
-			WeaponInfo[i].DefaultFlashO = Weap.default.FlashO;
-			/* Log("foxWSFix Stored " $ i @ Weap.Class
-				@ Weap.default.PlayerViewOffset
-				@ Weap.default.MuzzleScale
-				@ Weap.default.FlashO); */
-			break;
-		}
-	}
+	//First reset/save our "default default" values before doing anything else
+	UpdateCachedWeaponInfo(Weap);
 
 	//Fix bad FOV calculation in Inventory.CalcDrawOffset()
 	//Note: FOVAngle sometimes too high when respawning, so just use CachedDefaultFOV
@@ -148,6 +107,22 @@ function ApplyWeaponFOV(Weapon Weap)
 	Weap.default.MuzzleScale *= (CachedClipY * 4) / (CachedClipX * 3);
 	Weap.default.FlashO *= (CachedClipY * 4) / (CachedClipX * 3);
 	Weap.FlashO = Weap.default.FlashO; //Needed for weapons that don't recalc it (every weapon except Enforcer or Minigun)
+}
+function UpdateCachedWeaponInfo(Weapon Weap)
+{
+	if (CachedWeaponInfo.WeaponClass != None) {
+		CachedWeaponInfo.WeaponClass.default.PlayerViewOffset = CachedWeaponInfo.DefaultPlayerViewOffset;
+		CachedWeaponInfo.WeaponClass.default.MuzzleScale = CachedWeaponInfo.DefaultMuzzleScale;
+		CachedWeaponInfo.WeaponClass.default.FlashO = CachedWeaponInfo.DefaultFlashO;
+	}
+	if (Weap == None)
+		CachedWeaponInfo.WeaponClass = None;
+	else {
+		CachedWeaponInfo.WeaponClass = Weap.Class;
+		CachedWeaponInfo.DefaultPlayerViewOffset = Weap.default.PlayerViewOffset;
+		CachedWeaponInfo.DefaultMuzzleScale = Weap.default.MuzzleScale;
+		CachedWeaponInfo.DefaultFlashO = Weap.default.FlashO;
+	}
 }
 
 //fox: Convert vFOV to hFOV (and vice versa)
@@ -181,5 +156,6 @@ defaultproperties
 {
 	bDoInit=true
 	Desired43FOV=90f
+	bCorrectZoomFOV=true
 	//bCorrectMouseSensitivity=true
 }
