@@ -21,8 +21,8 @@ var WeaponInfo CachedWeaponInfo;
 
 var globalconfig float Desired43FOV;
 var globalconfig bool bCorrectZoomFOV;
-//var globalconfig bool bCorrectMouseSensitivity;
-//var globalconfig float Desired43MouseSensitivity;
+var globalconfig bool bCorrectMouseSensitivity;
+var globalconfig float LastCorrectedFOVScale;
 
 const DEGTORAD = 0.01745329251994329576923690768489; //Pi / 180
 const RADTODEG = 57.295779513082320876798154814105; //180 / Pi
@@ -62,7 +62,7 @@ event PostRender(canvas Canvas)
 		CachedDefaultFOV = default.CachedDefaultFOV;
 		CachedDesiredFOV = default.CachedDesiredFOV;
 		UpdateCachedWeaponInfo(None);
-		//CorrectMouseSensitivity();
+		CorrectMouseSensitivity();
 		return;
 	}
 
@@ -149,22 +149,34 @@ function float GetHorPlusFOV(float BaseFOV)
 }
 
 //fox: Match mouse sensitivity to 90 FOV sensitivity, allowing it to be independent of our aspect ratio
-//TODO Need to wire up options menu to handle this properly
-//function CorrectMouseSensitivity()
-//{
-//	if (!bCorrectMouseSensitivity || Viewport.Actor == None)
-//		return;
-//	if (Desired43MouseSensitivity == -1f)
-//		Desired43MouseSensitivity = class'PlayerPawn'.default.MouseSensitivity;
-//	Viewport.Actor.MouseSensitivity = Desired43MouseSensitivity
-//		/ (GetHorPlusFOV(90f) * 0.01111); //"Undo" PlayerInput FOVScale
-//}
+function CorrectMouseSensitivity()
+{
+	local float CorrectedFOVScale;
+	local string Sens;
+
+	if (!bCorrectMouseSensitivity || Viewport.Actor == None)
+		return;
+	CorrectedFOVScale = GetHorPlusFOV(90f) * 0.01111; //"Undo" PlayerPawn FOVScale
+	if (LastCorrectedFOVScale < 0f)
+		LastCorrectedFOVScale = CorrectedFOVScale;
+	if (LastCorrectedFOVScale == CorrectedFOVScale)
+		return;
+	Viewport.Actor.MouseSensitivity *= LastCorrectedFOVScale / CorrectedFOVScale;
+	LastCorrectedFOVScale = CorrectedFOVScale;
+	SaveConfig();
+
+	//Round to match original 2-precision menu value
+	Viewport.Actor.MouseSensitivity += 0.005;
+	Sens = string(Viewport.Actor.MouseSensitivity);
+	Sens = Left(Sens, InStr(Sens, ".") + 3);
+	Viewport.Actor.SetSensitivity(float(Sens)); //To also save updated value
+}
 
 defaultproperties
 {
 	bDoInit=true
 	Desired43FOV=90f
 	bCorrectZoomFOV=true
-	//bCorrectMouseSensitivity=true
-	//Desired43MouseSensitivity=-1f
+	bCorrectMouseSensitivity=true
+	LastCorrectedFOVScale=-1f
 }
