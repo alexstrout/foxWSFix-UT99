@@ -22,6 +22,7 @@ var WeaponInfo CachedWeaponInfo;
 var globalconfig float Desired43FOV;
 var globalconfig bool bCorrectZoomFOV;
 //var globalconfig bool bCorrectMouseSensitivity;
+//var globalconfig float Desired43MouseSensitivity;
 
 const DEGTORAD = 0.01745329251994329576923690768489; //Pi / 180
 const RADTODEG = 57.295779513082320876798154814105; //180 / Pi
@@ -87,14 +88,20 @@ event PostRender(canvas Canvas)
 		return;
 	}
 
+	//Oh no! Work around weapon respawn bug where position isn't set correctly on respawn
+	//(Note: This isn't actually necessary for UT99 but is still nice for consistency)
+	if (P.Weapon == None) {
+		UpdateCachedWeaponInfo(None);
+		return;
+	}
+
 	//Set weapon FOV as well - only once per weapon
-	if (P.Weapon != None
-	&& P.Weapon.Class != CachedWeaponInfo.WeaponClass)
+	if (P.Weapon.Class != CachedWeaponInfo.WeaponClass)
 		ApplyWeaponFOV(P.Weapon);
 }
 function ApplyWeaponFOV(Weapon Weap)
 {
-	//First reset/save our "default default" values before doing anything else
+	//First reset our "default default" values before doing anything else
 	UpdateCachedWeaponInfo(Weap);
 
 	//Fix bad FOV calculation in Inventory.CalcDrawOffset()
@@ -145,11 +152,12 @@ function float GetHorPlusFOV(float BaseFOV)
 //TODO Need to wire up options menu to handle this properly
 //function CorrectMouseSensitivity()
 //{
-//	if (!bCorrectMouseSensitivity
-//	|| Viewport.Actor == None)
+//	if (!bCorrectMouseSensitivity || Viewport.Actor == None)
 //		return;
-//	Viewport.Actor.MouseSensitivity = class'PlayerPawn'.default.MouseSensitivity
-//		/ (GetHorPlusFOV(Desired43FOV) * 0.01111); //"Undo" PlayerInput FOVScale
+//	if (Desired43MouseSensitivity == -1f)
+//		Desired43MouseSensitivity = class'PlayerPawn'.default.MouseSensitivity;
+//	Viewport.Actor.MouseSensitivity = Desired43MouseSensitivity
+//		/ (GetHorPlusFOV(90f) * 0.01111); //"Undo" PlayerInput FOVScale
 //}
 
 defaultproperties
@@ -158,4 +166,5 @@ defaultproperties
 	Desired43FOV=90f
 	bCorrectZoomFOV=true
 	//bCorrectMouseSensitivity=true
+	//Desired43MouseSensitivity=-1f
 }
