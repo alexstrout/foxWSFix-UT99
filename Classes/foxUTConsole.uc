@@ -19,10 +19,11 @@ struct WeaponInfo
 };
 var WeaponInfo CachedWeaponInfo;
 
+var float LastCorrectedFOVScale;
+
 var globalconfig float Desired43FOV;
 var globalconfig bool bCorrectZoomFOV;
 var globalconfig bool bCorrectMouseSensitivity;
-var globalconfig float LastCorrectedFOVScale;
 
 const DEGTORAD = 0.01745329251994329576923690768489; //Pi / 180
 const RADTODEG = 57.295779513082320876798154814105; //180 / Pi
