@@ -164,7 +164,6 @@ function CorrectMouseSensitivity()
 		return;
 	Viewport.Actor.MouseSensitivity *= LastCorrectedFOVScale / CorrectedFOVScale;
 	LastCorrectedFOVScale = CorrectedFOVScale;
-	SaveConfig();
 
 	//Round to match original 2-precision menu value
 	Viewport.Actor.MouseSensitivity += 0.005;
@@ -176,8 +175,8 @@ function CorrectMouseSensitivity()
 defaultproperties
 {
 	bDoInit=true
+	LastCorrectedFOVScale=-1f
 	Desired43FOV=90f
 	bCorrectZoomFOV=true
 	bCorrectMouseSensitivity=true
-	LastCorrectedFOVScale=-1f
 }
