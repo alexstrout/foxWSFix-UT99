@@ -76,12 +76,12 @@ Finally, run "foxWSFix99\Compile.bat" (or simply "UCC make") to compile the proj
 Feedback
 --------
 If you have any questions or feedback, feel free to leave a comment on Steam:
-[steam thread here]
+https://steamcommunity.com/app/13240/discussions/0/2993169283946758056/
 
 And of course, thanks for trying the mod!
 ~fox
 
 Changes
 -------
-v1.0.0 (???):
+v1.0.0 (2020-12-10):
 * Initial release.
