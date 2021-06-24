@@ -2,6 +2,8 @@ foxWSFix99 v1.0.0
 =================
 Improved widescreen support for Unreal Tournament 1999
 
+![Mini-Wide Window!](Media/Shot0007.jpg)
+
 Features
 --------
 * Aspect-correct "Hor+" FOV adjustment, including weapon zoom values
