@@ -18,6 +18,7 @@ struct WeaponInfo
 	var float DefaultFlashO;
 };
 var WeaponInfo CachedWeaponInfo;
+var vector CachedPlayerViewOffset;
 
 var float LastCorrectedFOVScale;
 
@@ -99,6 +100,10 @@ event PostRender(canvas Canvas)
 	//Set weapon FOV as well - only once per weapon
 	if (P.Weapon.Class != CachedWeaponInfo.WeaponClass)
 		ApplyWeaponFOV(P.Weapon);
+
+	//Set weapon view offset - needed every frame for network clients
+	if (P.Weapon.PlayerViewOffset != CachedPlayerViewOffset)
+		ApplyWeaponViewOffset(P.Weapon);
 }
 function ApplyWeaponFOV(Weapon Weap)
 {
@@ -107,9 +112,8 @@ function ApplyWeaponFOV(Weapon Weap)
 
 	//Fix bad FOV calculation in Inventory.CalcDrawOffset()
 	//Note: FOVAngle sometimes too high when respawning, so just use CachedDefaultFOV
-	//Weap.default.PlayerViewOffset *= Viewport.Actor.FOVAngle / 90f;
 	Weap.default.PlayerViewOffset *= CachedDefaultFOV / 90f;
-	Weap.SetHand(Viewport.Actor.Handedness);
+	ApplyWeaponViewOffset(Weap); //Also called again if needed in PostRender, due to variable network latency
 
 	//Also fix muzzle flash position
 	Weap.default.MuzzleScale *= (CachedClipY * 4) / (CachedClipX * 3);
@@ -119,6 +123,7 @@ function ApplyWeaponFOV(Weapon Weap)
 function UpdateCachedWeaponInfo(Weapon Weap)
 {
 	if (CachedWeaponInfo.WeaponClass != None) {
+		//Viewport.Actor.ClientMessage("UpdateCachedWeaponInfo from " $ CachedWeaponInfo.WeaponClass @ CachedWeaponInfo.WeaponClass.default.PlayerViewOffset);
 		CachedWeaponInfo.WeaponClass.default.PlayerViewOffset = CachedWeaponInfo.DefaultPlayerViewOffset;
 		CachedWeaponInfo.WeaponClass.default.MuzzleScale = CachedWeaponInfo.DefaultMuzzleScale;
 		CachedWeaponInfo.WeaponClass.default.FlashO = CachedWeaponInfo.DefaultFlashO;
@@ -126,10 +131,32 @@ function UpdateCachedWeaponInfo(Weapon Weap)
 	if (Weap == None)
 		CachedWeaponInfo.WeaponClass = None;
 	else {
+		//Viewport.Actor.ClientMessage("UpdateCachedWeaponInfo to " $ Weap.Class @ Weap.default.PlayerViewOffset);
 		CachedWeaponInfo.WeaponClass = Weap.Class;
 		CachedWeaponInfo.DefaultPlayerViewOffset = Weap.default.PlayerViewOffset;
 		CachedWeaponInfo.DefaultMuzzleScale = Weap.default.MuzzleScale;
 		CachedWeaponInfo.DefaultFlashO = Weap.default.FlashO;
+	}
+	default.CachedWeaponInfo = CachedWeaponInfo; //Persist across levels (in case we're somehow destroyed)
+}
+
+//fox: Calculate a weapon view offset usable by network clients
+function ApplyWeaponViewOffset(Weapon Weap)
+{
+	local Weapon W;
+
+	//Weapon.SetHand will properly position our weapon based on scaled default values
+	//However, as a network client, we don't actually own our weapon, so SetHand won't see our new values
+	//To work around this, we'll quickly spawn and destroy a local weapon to call SetHand with
+	W = Weap.Spawn(Weap.class);
+	if (W != None) {
+		//Viewport.Actor.ClientMessage("ApplyWeaponViewOffset " $ W.Class @ W.default.PlayerViewOffset);
+		W.SetHand(Viewport.Actor.Handedness);
+		CachedPlayerViewOffset = W.PlayerViewOffset;
+		W.Destroy();
+
+		//Pass the calculated offset back to our real weapon
+		Weap.PlayerViewOffset = CachedPlayerViewOffset;
 	}
 }
 
