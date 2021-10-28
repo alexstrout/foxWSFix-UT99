@@ -98,12 +98,10 @@ event PostRender(canvas Canvas)
 	}
 
 	//Set weapon FOV as well - only once per weapon
-	if (P.Weapon.Class != CachedWeaponInfo.WeaponClass)
+	//Repeat if needed for network clients, due to variable network latency (n/a to UT2k4)
+	if (P.Weapon.Class != CachedWeaponInfo.WeaponClass
+	|| P.Weapon.PlayerViewOffset != CachedPlayerViewOffset)
 		ApplyWeaponFOV(P.Weapon);
-
-	//Set weapon view offset - needed every frame for network clients
-	if (P.Weapon.PlayerViewOffset != CachedPlayerViewOffset)
-		ApplyWeaponViewOffset(P.Weapon);
 }
 function ApplyWeaponFOV(Weapon Weap)
 {
@@ -113,7 +111,7 @@ function ApplyWeaponFOV(Weapon Weap)
 	//Fix bad FOV calculation in Inventory.CalcDrawOffset()
 	//Note: FOVAngle sometimes too high when respawning, so just use CachedDefaultFOV
 	Weap.default.PlayerViewOffset *= CachedDefaultFOV / 90f;
-	ApplyWeaponViewOffset(Weap); //Also called again if needed in PostRender, due to variable network latency
+	ApplyWeaponViewOffset(Weap);
 
 	//Also fix muzzle flash position
 	Weap.default.MuzzleScale *= (CachedClipY * 4) / (CachedClipX * 3);
