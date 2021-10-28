@@ -24,6 +24,7 @@ var float LastCorrectedFOVScale;
 
 var globalconfig float Desired43FOV;
 var globalconfig bool bCorrectZoomFOV;
+var globalconfig bool bCorrectWeaponFOV;
 var globalconfig bool bCorrectMouseSensitivity;
 
 const DEGTORAD = 0.01745329251994329576923690768489; //Pi / 180
@@ -107,6 +108,13 @@ function ApplyWeaponFOV(Weapon Weap)
 {
 	//First reset our "default default" values before doing anything else
 	UpdateCachedWeaponInfo(Weap);
+
+	//Abort if we don't want to correct visual weapon FOV
+	//We still UpdateCachedWeaponInfo though, to save calling this function every frame
+	if (!bCorrectWeaponFOV) {
+		CachedPlayerViewOffset = Weap.PlayerViewOffset; //Same here
+		return;
+	}
 
 	//Fix bad FOV calculation in Inventory.CalcDrawOffset()
 	//Note: FOVAngle sometimes too high when respawning, so just use CachedDefaultFOV
@@ -203,5 +211,6 @@ defaultproperties
 	LastCorrectedFOVScale=-1f
 	Desired43FOV=90f
 	bCorrectZoomFOV=true
+	bCorrectWeaponFOV=true
 	bCorrectMouseSensitivity=true
 }
