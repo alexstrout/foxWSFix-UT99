@@ -1,4 +1,4 @@
-foxWSFix99 v1.0.0
+foxWSFix99 v1.1.0 - [Changelog](#changes)
 =================
 Improved widescreen support for Unreal Tournament 1999
 
@@ -8,7 +8,7 @@ Features
 --------
 * Aspect-correct "Hor+" FOV adjustment, including weapon zoom values
 * Aspect-correct rendering for first-person weapons
-* Aspect-correct mouse sensitivity (auto-adjusts on resolution change)
+* Aspect-correct mouse sensitivity (scale off wider FOV instead of hard-coded 90)
 * Entirely client-side - no mutators required
 
 Install / Uninstall
@@ -52,7 +52,8 @@ foxWSFix stores its settings in System\UnrealTournament.ini as such:
     [foxWSFix99.foxUTConsole]
     Desired43FOV=90.000000          ;Desired 4:3 FOV per SetFOV command
     bCorrectZoomFOV=True            ;Correct FOV values for weapon zoom?
-    bCorrectMouseSensitivity=True   ;Correct MouseSensitivity for aspect ratio changes?
+    bCorrectWeaponFOV=True          ;Correct FOV values for on-screen weapon viewmodel?
+    bCorrectMouseSensitivity=True   ;Correct MouseSensitivity for aspect ratio changes? (due to wider FOV)
     <Normal UTConsole options etc.>
 
 Note: bCorrectMouseSensitivity only applies after exiting all menus - be sure to do so after changing resolution!
@@ -62,11 +63,8 @@ Known Issues
 * HUDs grow larger with aspect ratio, but can be shrunk back down using the in-game HUD Scale slider.
 * Unfortunately, HUD Scale does not apply to crosshairs. Crosshair scale will require either custom HUDs or ugly hacks. :(
 
-Source Code / Compile Steps
----------------------------
-Source code for the project is included in the "Src" folder or online:
-https://www.taraxis.com/foxwsfix-ut99
-
+Compile Steps
+-------------
 To compile, move the "foxWSFix99" folder inside "Src" out into your root UT install directory.
 
 Then simply add the following to the [Editor.EditorEngine] section in System\UnrealTournament.ini:
@@ -80,10 +78,17 @@ Feedback
 If you have any questions or feedback, feel free to leave a comment on Steam:
 https://steamcommunity.com/app/13240/discussions/0/2993169283946758056/
 
+Issues and Pull Requests are also welcome:
+https://github.com/alexstrout/foxWSFix-UT99
+
 And of course, thanks for trying the mod!
 ~fox
 
 Changes
 -------
+v1.1.0 (2021-10-30):
+* Fixed weapon scaling not applying to network clients
+* Added "bCorrectWeaponFOV" option to control visual weapon FOV scaling
+
 v1.0.0 (2020-12-10):
 * Initial release.
