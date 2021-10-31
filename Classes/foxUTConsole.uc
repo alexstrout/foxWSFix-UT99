@@ -171,22 +171,16 @@ function ApplyWeaponViewOffset(Weapon Weap)
 	W = Weap.Spawn(Weap.class);
 	if (W != None) {
 		//Viewport.Actor.ClientMessage("ApplyWeaponViewOffset " $ W.Class @ W.default.PlayerViewOffset);
+		if (Enforcer(Weap) != None && Enforcer(Weap).SlaveEnforcer != None) //Ugly Enforcer hack
+			Enforcer(W).SlaveEnforcer = Enforcer(Weap.Spawn(Weap.class));
 		W.SetHand(Viewport.Actor.Handedness);
 		CachedPlayerViewOffset = W.PlayerViewOffset;
 		Weap.PlayerViewOffset = CachedPlayerViewOffset;
-
-		//Ugly enforcer hack
-		if (Enforcer(Weap) != None && Enforcer(Weap).SlaveEnforcer != None) {
-			Enforcer(W).SlaveEnforcer = Enforcer(Weap.Spawn(Weap.class)); //Gets destroyed on W.Destroy()
-			if (Enforcer(W).SlaveEnforcer != None) {
-				W.SetHand(Viewport.Actor.Handedness);
-				CachedSlavePlayerViewOffset = Enforcer(W).SlaveEnforcer.PlayerViewOffset;
-				Enforcer(Weap).SlaveEnforcer.PlayerViewOffset = CachedSlavePlayerViewOffset;
-			}
+		if (Enforcer(W).SlaveEnforcer != None) { //Ugly Enforcer hack
+			CachedSlavePlayerViewOffset = Enforcer(W).SlaveEnforcer.PlayerViewOffset;
+			Enforcer(Weap).SlaveEnforcer.PlayerViewOffset = CachedSlavePlayerViewOffset;
 		}
-
-		//Merp
-		W.Destroy();
+		W.Destroy(); //Merp (will also destroy SlaveEnforcer if it exists)
 	}
 }
 
