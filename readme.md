@@ -1,4 +1,4 @@
-foxWSFix99 v1.1.0 - [Changelog](#changes)
+foxWSFix99 v1.1.1 - [Changelog](#changes)
 =================
 Improved widescreen support for Unreal Tournament 1999
 
@@ -86,6 +86,10 @@ And of course, thanks for trying the mod!
 
 Changes
 -------
+v1.1.1 (2021-10-31):
+* Fixed dual Enforcers not scaling correctly
+  * (Note: Modded dual weapons may still have issues for network clients)
+
 v1.1.0 (2021-10-30):
 * Fixed weapon scaling not applying to network clients
 * Added "bCorrectWeaponFOV" option to control visual weapon FOV scaling

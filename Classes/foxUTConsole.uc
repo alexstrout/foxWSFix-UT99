@@ -19,6 +19,7 @@ struct WeaponInfo
 };
 var WeaponInfo CachedWeaponInfo;
 var vector CachedPlayerViewOffset;
+var vector CachedSlavePlayerViewOffset;
 
 var float LastCorrectedFOVScale;
 
@@ -99,9 +100,18 @@ event PostRender(canvas Canvas)
 	}
 
 	//Set weapon FOV as well - only once per weapon
+	if (P.Weapon.Class != CachedWeaponInfo.WeaponClass)
+		ApplyWeaponFOV(P.Weapon);
+	if (P.Role == ROLE_Authority)
+		return;
+
 	//Repeat if needed for network clients, due to variable network latency (n/a to UT2k4)
-	if (P.Weapon.Class != CachedWeaponInfo.WeaponClass
-	|| P.Weapon.PlayerViewOffset != CachedPlayerViewOffset)
+	//Same with ugly enforcer hack, I hate this :P
+	if (P.Weapon.PlayerViewOffset != CachedPlayerViewOffset
+	|| (
+		Enforcer(P.Weapon) != None && Enforcer(P.Weapon).SlaveEnforcer != None
+		&& Enforcer(P.Weapon).SlaveEnforcer.PlayerViewOffset != CachedSlavePlayerViewOffset
+	))
 		ApplyWeaponFOV(P.Weapon);
 }
 function ApplyWeaponFOV(Weapon Weap)
@@ -152,6 +162,10 @@ function ApplyWeaponViewOffset(Weapon Weap)
 	local Weapon W;
 
 	//Weapon.SetHand will properly position our weapon based on scaled default values
+	Weap.SetHand(Viewport.Actor.Handedness);
+	if (Viewport.Actor.Role == ROLE_Authority)
+		return;
+
 	//However, as a network client, we don't actually own our weapon, so SetHand won't see our new values
 	//To work around this, we'll quickly spawn and destroy a local weapon to call SetHand with
 	W = Weap.Spawn(Weap.class);
@@ -159,10 +173,20 @@ function ApplyWeaponViewOffset(Weapon Weap)
 		//Viewport.Actor.ClientMessage("ApplyWeaponViewOffset " $ W.Class @ W.default.PlayerViewOffset);
 		W.SetHand(Viewport.Actor.Handedness);
 		CachedPlayerViewOffset = W.PlayerViewOffset;
-		W.Destroy();
-
-		//Pass the calculated offset back to our real weapon
 		Weap.PlayerViewOffset = CachedPlayerViewOffset;
+
+		//Ugly enforcer hack
+		if (Enforcer(Weap) != None && Enforcer(Weap).SlaveEnforcer != None) {
+			Enforcer(W).SlaveEnforcer = Enforcer(Weap.Spawn(Weap.class)); //Gets destroyed on W.Destroy()
+			if (Enforcer(W).SlaveEnforcer != None) {
+				W.SetHand(Viewport.Actor.Handedness);
+				CachedSlavePlayerViewOffset = Enforcer(W).SlaveEnforcer.PlayerViewOffset;
+				Enforcer(Weap).SlaveEnforcer.PlayerViewOffset = CachedSlavePlayerViewOffset;
+			}
+		}
+
+		//Merp
+		W.Destroy();
 	}
 }
 
