@@ -176,7 +176,7 @@ function ApplyWeaponViewOffset(Weapon Weap)
 		W.SetHand(Viewport.Actor.Handedness);
 		CachedPlayerViewOffset = W.PlayerViewOffset;
 		Weap.PlayerViewOffset = CachedPlayerViewOffset;
-		if (Enforcer(W).SlaveEnforcer != None) { //Ugly Enforcer hack
+		if (Enforcer(W) != None && Enforcer(W).SlaveEnforcer != None) { //Ugly Enforcer hack
 			CachedSlavePlayerViewOffset = Enforcer(W).SlaveEnforcer.PlayerViewOffset;
 			Enforcer(Weap).SlaveEnforcer.PlayerViewOffset = CachedSlavePlayerViewOffset;
 		}

@@ -98,6 +98,10 @@ And of course, thanks for trying the mod!
 
 Changes
 -------
+v1.1.2 (2026-xx-xx):
+* Fixed "ApplyWeaponViewOffset Accessed None" error (v1.1.1 regression)
+* Updated documentation to mention potential anti-cheat issues (thought I did this years ago! Sorry!)
+
 v1.1.1 (2021-10-31):
 * Fixed dual Enforcers not scaling correctly
   * (Note: Modded dual weapons may still have issues for network clients)
