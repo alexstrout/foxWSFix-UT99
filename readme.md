@@ -11,6 +11,17 @@ Features
 * Aspect-correct mouse sensitivity (scale off wider FOV instead of hard-coded 90)
 * Entirely client-side - no mutators required
 
+Recommendations
+===============
+Before installing this fix, please consider trying the OldUnreal patches first:
+* [Website](https://oldunreal.com/)
+* [GitHub](https://github.com/OldUnreal/UnrealTournamentPatches)
+
+These implement native widescreen support and *avoid issues with server-side anti-cheat.*
+
+**As this mod is client-side, you may be kicked _or even banned_ from servers running anti-cheat like [ACE](https://ut99.org/viewforum.php?f=66).**
+Please use with caution!
+
 Install / Uninstall
 -------------------
 Extract the release archive to your UT install directory.
@@ -62,6 +73,7 @@ Known Issues
 ------------
 * HUDs grow larger with aspect ratio, but can be shrunk back down using the in-game HUD Scale slider.
 * Unfortunately, HUD Scale does not apply to crosshairs. Crosshair scale will require either custom HUDs or ugly hacks. :(
+* Unreal may refuse to switch to widescreen resolutions above 1080p. See [Recommendations](#recommendations) above.
 
 Compile Steps
 -------------
