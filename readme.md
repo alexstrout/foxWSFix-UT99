@@ -1,4 +1,4 @@
-foxWSFix99 v1.1.1 - [Changelog](#changes)
+foxWSFix99 v1.1.2 - [Changelog](#changes)
 =================
 Improved widescreen support for Unreal Tournament 1999
 
@@ -98,7 +98,7 @@ And of course, thanks for trying the mod!
 
 Changes
 -------
-v1.1.2 (2026-xx-xx):
+v1.1.2 (2026-06-16):
 * Fixed "ApplyWeaponViewOffset Accessed None" error (v1.1.1 regression)
 * Updated documentation to mention potential anti-cheat issues (thought I did this years ago! Sorry!)
 
